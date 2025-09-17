@@ -1,0 +1,124 @@
+openapi: 3.0.0
+info:
+  title: 'API, вызываемый фронтендом при нажатии на кнопку “Register”'
+  description: ''
+  version: 1.0.0
+
+paths:
+  /register:
+    post:
+      summary: "Регистрация пользователя"
+      operationId: userRegister
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RegisterRequestScheme'
+      responses:
+        '201':
+          description: 'Created'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessfulRegisterResponceScheme'
+        '400':
+          description: 'Bad Request'  
+          content:
+            application/json:
+              schema:
+                oneOf:
+                  - $ref: '#/components/schemas/WrongPasswordResponceScheme'
+                  - $ref: '#/components/schemas/MissingCapchaResponceScheme'
+        '409':
+          description: 'Conflict'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserExistsResponceScheme'
+
+
+
+###КОМПОНЕНТЫ
+components:
+  schemas:
+    SuccessfulRegisterResponceScheme:
+      required: 
+        - message
+      type: object
+      properties:
+        message:
+          type: string
+          example: "User Register Successfully"
+
+    MissingCapchaResponceScheme:
+      required: 
+        - message
+      type: object
+      properties:
+        message:
+          type: string
+          example: "please verify reCaptcha to register!"
+
+    UserExistsResponceScheme:
+      required: 
+        - message
+      type: object
+      properties:
+        message:
+          type: string
+          example: "User exists!"
+
+    WrongPasswordResponceScheme:
+      required: 
+        - message
+      type: object
+      properties:
+        message:
+          type: string
+          example: "Passwords must have at least one non alphanumeric character, one digit ('O''9), one uppercase ('A'-'Z'), one lowercase ('a'-'z'), one special character and Password must be eight characters or longer."
+
+    RegisterRequestScheme:
+      required:
+        - firstName
+        - lastName
+        - userName
+        - password
+        - captchaToken
+      type: object
+      properties: 
+        firstName:
+          description: 'Имя пользователя'
+          type: string
+          minLength: 1
+          maxLength: 50
+          pattern: '^[A-Za-zА-Яа-яЁё]+$'
+          example: 'ivan'
+        lastName:
+          description: 'Фамилия пользователя'
+          type: string
+          minLength: 1
+          maxLength: 50
+          pattern: '^[A-Za-zА-Яа-яЁё]+$'
+          example: 'ivanov'
+        userName:
+          description: 'Ник пользователя'
+          type: string
+          minLength: 1
+          maxLength: 50
+          pattern: '^[A-Za-zА-Яа-яЁё]+$'
+          example: 'ivan'
+        password:
+          description: 'Пароль пользователя'
+          type: string
+          minLength: 8
+          maxLength: 128
+          pattern: '^(?=.*[A-Z])(?=.*[a-z])(?=.*\d)(?=.*[!@#$%^&*()_+\-=\[\]{};:"''\\|,.<>\/?]).{8,}$'
+          example: 'Passw0rd!'        
+        captchaToken:
+          description: 'Токен капчи'
+          type: string
+          minLength: 1
+          maxLength: 2048
+          example: '03AGdBq27'
+ 
