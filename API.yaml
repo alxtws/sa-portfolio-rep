@@ -1,0 +1,495 @@
+openapi: 3.0.0
+info:
+  title: 'API для работы с сервисом "Model catalog"'
+  description: ''
+  version: 1.0.0
+
+tags:
+  - name: models 
+
+paths:
+  /healthChek:
+    get:
+      tags:
+        - models
+      summary: "Проверка доступности сервиса"
+      operationId: healthChek
+      responses:
+        '200':
+          description: 'Сервис доступен'  
+        '500':
+          description: 'Внутренняя ошибка сервера'
+  /models:
+    get:  
+      tags:
+        - models
+      summary: 'Получение списка всех доступных моделей'
+      description: 'Метод получает массив объектов, сожержащих метаданные доступных моделей'
+      operationId: getModels
+      responses:
+        '200':
+          description: 'OK'
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/GetModelsResponse"
+        '400':
+          description: 'Передан некорректный запрос'
+        '404':
+          description: 'Модели не найдены'
+        '500':
+          description: 'Внутренняя ошибка сервера'
+
+  /models/{productCode}:
+    get:
+      tags:
+        - models
+      summary: 'Получение списка всех доступных моделей для конкретного типа продукта'
+      description: 'Метод получает массив объектов, сожержащих метаданные доступных моделей для конкретного типа продукта'
+      operationId: getModelsByProduct
+      parameters: 
+        - name: productCode
+          required: true
+          description: 'ID типа продукта'
+          in: path 
+          schema:
+            type: integer
+            minimum: 1
+            example: 2 
+      responses:
+        '200':
+          description: 'OK'
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/GetModelsByProductResponse"
+        '400':
+          description: 'Передан некорректный запрос'
+        '404':
+          description: 'Модели не найдены'
+        '500':
+          description: 'Внутренняя ошибка сервера'
+
+  /models/{userTypeId}:
+    get:
+      tags:
+        - models
+      summary: 'Получение списка всех доступных моделей для конкретного типа пользователя'
+      description: 'Метод получает массив объектов, сожержащих метаданные доступных моделей для конкретного типа пользователя'
+      operationId: getModelsByUserType
+      parameters: 
+        - name: userTypeId
+          required: true
+          description: 'ID типа продукта' 
+          in: path 
+          schema:
+            type: integer
+            minimum: 1
+            example: 2
+      responses:
+        '200':
+          description: 'OK'
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/GetModelsByUserResponse"
+        '400':
+          description: 'Передан некорректный запрос'
+        '404':
+          description: 'Модели не найдены'
+        '500':
+          description: 'Внутренняя ошибка сервера'
+
+  /models/{modelId}:
+    patch:
+      tags:
+        - models 
+      summary: 'Редактирование метаданных модели'
+      description: 'Метод изменяет одно или несколько полей метаданных модели: название, версию, описание, статус модели, владельца модели и разработчиков модели.'
+      operationId: editModelMetadata
+      parameters: 
+        - name: modelId
+          required: true
+          description: 'ID модели'
+          in: path 
+          schema:
+            type: integer
+            minimum: 1
+            example: 45
+      requestBody:
+        required: false
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/EditModelMetadataRequest'
+      responses: 
+        '200': 
+          description: 'OK, запись изменена'
+        '400':
+          description: 'Передан некорректный запрос'
+        '404':
+          description: 'Запись не найдена'
+        '500':
+          description: 'Внутренняя ошибка сервера' 
+        '503':
+          description: 'Сервис недоступен'  
+  
+  /products:
+    get:
+      tags:
+        - models
+      summary: "Получение списка всех типов продукта"
+      description: "Метод получает массив объектов, содержащих информацию о доступных типах продукта"
+      operationId: getProducts
+      responses:
+        '200':
+          description: 'OK'
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/ProductScheme"
+        '400':
+          description: 'Передан некорректный запрос'
+        '404':
+          description: 'Типы продукта не найдены'
+        '500':
+          description: 'Внутренняя ошибка сервера'
+
+  /statuses:
+    get:
+      tags:
+        - models
+      summary: "Получение списка всех статусов модели"
+      description: "Метод получает массив объектов, содержащих информацию о статусах модели"
+      operationId: getStatuses
+      responses:
+        '200':
+          description: 'OK'
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/StatusScheme"
+        '400':
+          description: 'Передан некорректный запрос'
+        '404':
+          description: 'Статусы не найдены'
+        '500':
+          description: 'Внутренняя ошибка сервера'
+
+###КОМПОНЕНТЫ
+components:
+  schemas:
+    GetModelsResponse:
+      description: 'Метаданные моделей'
+      required:
+        - id
+        - modelName
+        - version
+        - description
+        - status
+        - product
+        - owner
+        - developers
+      type: object
+      properties:
+        id:
+          description: 'ID модели'
+          type: integer
+          minimum: 1
+          example: 1
+        modelName:
+          description: 'Название модели'
+          type: string
+          minLength: 1
+          maxLength: 40
+          pattern: '^[А-Яа-яЁё\s-]{1,40}$'
+          example: 'Модель 1'
+        version:
+          description: 'Версия модели'
+          type: string
+          minLength: 1
+          maxLength: 10
+          pattern: '^[0-9]+(\.[0-9]+)*$'
+          example: '1.01'
+        description:
+          description: 'Описание модели'
+          type: string
+          minLength: 1
+          maxLength: 250
+          pattern: '^[А-Яа-яЁё\s-]{1,250}$'
+          example: 'Модель машинного обучения, основанная на алгоритме “Ансамбль”'
+        status:
+          $ref: '#/components/schemas/StatusScheme'
+        product:
+          $ref: '#/components/schemas/ProductScheme'
+        owner:
+          $ref: '#/components/schemas/OwnerScheme'
+        developers:
+          description: 'Разработчики модели'
+          type: array
+          items:
+            $ref: '#/components/schemas/DeveloperScheme'
+          
+    GetModelsByUserResponse:
+      description: 'Метаданные моделей'
+      required: 
+        - id
+        - modelName
+        - version
+        - description
+        - productId
+        - productType
+        - ownerId
+        - developersId
+      type: object
+      properties:
+        id:
+          description: 'ID модели'
+          type: string
+          minLength: 1
+          pattern: '^[0-9]+$'
+          example: "1"
+        modelName:
+          description: 'Название модели'
+          type: string
+          minLength: 1
+          maxLength: 40
+          pattern: '^[А-Яа-яЁё\s-]{1,40}$'
+          example: 'Модель 1'
+        version:
+          description: 'Версия модели'
+          type: string
+          minLength: 1
+          maxLength: 10
+          pattern: '^[0-9]+(\.[0-9]+)*$'
+          example: '1.01'
+        description:
+          description: 'Описание модели'
+          type: string
+          minLength: 1
+          maxLength: 250
+          pattern: '^[А-Яа-яЁё\s-]{1,250}$'
+          example: 'Модель машинного обучения, основанная на алгоритме “Ансамбль”'
+        productCode:
+          description: 'Код продукта'
+          type: string
+          minLength: 1
+          maxLength: 20
+          pattern: '^[a-zA-Z0-9]+$'
+          example: "prod001"
+        productType:
+          description: 'Наименование продукта'
+          type: string
+          minLength: 1
+          maxLength: 40
+          pattern: '^[А-Яа-яЁё\s-]{1,40}$'
+          example: "ОСАГО"
+        ownerId:
+          description: 'ID владельца модели'
+          type: string
+          minLength: 1
+          pattern: '^[0-9]+$'
+          example: "1"
+        developersId:
+          description: 'ID разработчиков модели'
+          type: array 
+          items:
+            type: string
+            minLength: 1
+            pattern: '^[0-9]+$'
+            example: "1" 
+ 
+    GetModelsByProductResponse:
+      description: 'Метаданные моделей'
+      required: 
+        - id
+        - modelName
+      type: object
+      properties:
+        id:
+          description: 'ID модели'
+          type: integer
+          minimum: 1
+          example: 1
+        modelName:
+          description: 'Название модели'
+          type: string
+          minLength: 1
+          maxLength: 40
+          pattern: '^[А-Яа-яЁё\s-]{1,40}$'
+          example: 'Модель 1'
+          
+    
+    StatusScheme:
+      description: 'Статус модели'
+      required:
+        - id
+        - statusName
+      type: object 
+      properties:
+        id:
+          description: 'ID статуса'
+          type: integer
+          minimum: 1
+          example: 1
+        statusName:
+          description: 'Наименование статуса'
+          type: string
+          minLength: 1
+          maxLength: 40
+          pattern: '^[А-Яа-яЁё\s-]{1,40}$'
+          example: 'Запущена'
+
+    ProductScheme:
+      description: 'Продукт, к которому относится модель'
+      required:
+        - productCode 
+        - productName
+      type: object 
+      properties:
+        productCode:
+          description: 'Код продукта'
+          type: string
+          minLength: 1
+          maxLength: 20
+          pattern: '^[a-zA-Z0-9]+$'
+          example: "prod001"
+        productName:
+          description: 'Наименование продукта'
+          type: string
+          minLength: 1
+          maxLength: 40
+          pattern: '^[А-Яа-яЁё\s-]{1,40}$'
+          example: 'ОСАГО'
+
+    OwnerScheme:
+      description: 'Владелец модели'
+      required:
+        - id
+        - firstName
+        - lastName
+        - patronymic
+      type: object 
+      properties:
+        id:
+          description: 'ID владельца'
+          type: integer
+          minimum: 1
+          example: 1
+        firstName:
+          description: 'Имя владельца'
+          type: string
+          minLength: 1
+          maxLength: 40
+          pattern: '^[А-Яа-яЁё\s-]{1,40}$'
+          example: 'Иван'
+        lastName:
+          description: 'Фамилия владельца'
+          type: string
+          minLength: 1
+          maxLength: 40
+          pattern: '^[А-Яа-яЁё\s-]{1,40}$'
+          example: 'Иванов'
+        patronymic:
+          description: 'Отчество владельца'
+          type: string
+          minLength: 1
+          maxLength: 40
+          pattern: '^[А-Яа-яЁё\s-]{1,40}$'
+          example: 'Иванович'
+
+    DeveloperScheme:
+      description: 'Разработчик модели'
+      required:
+        - id
+        - firstName
+        - lastName
+        - patronymic
+      type: object 
+      properties:
+        id:
+          description: 'ID разработчика'
+          type: integer
+          minimum: 1
+          example: 1
+        firstName:
+          description: 'Имя разработчика'
+          type: string
+          minLength: 1
+          maxLength: 40
+          pattern: '^[А-Яа-яЁё\s-]{1,40}$'
+          example: 'Олег'
+        lastName:
+          description: 'Фамилия разработчика'
+          type: string
+          minLength: 1
+          maxLength: 40
+          pattern: '^[А-Яа-яЁё\s-]{1,40}$'
+          example: 'Олегов'
+        patronymic:
+          description: 'Отчество разработчика'
+          type: string
+          minLength: 1
+          maxLength: 40
+          pattern: '^[А-Яа-яЁё\s-]{1,40}$'
+          example: 'Олегович'
+
+    EditModelMetadataRequest:
+      type: object
+      properties:
+        modelName:
+          description: 'Название модели'
+          type: string
+          minLength: 1
+          maxLength: 40
+          pattern: '^[А-Яа-яЁё\s-]{1,40}$'
+          example: 'Модель 1'
+        version:
+          description: 'Версия модели'
+          type: string
+          minLength: 1
+          maxLength: 10
+          pattern: '^[0-9]+(\.[0-9]+)*$'
+          example: '1.01'
+        description:
+          description: 'Описание модели'
+          type: string
+          minLength: 1
+          maxLength: 250
+          pattern: '^[А-Яа-яЁё\s-]{1,250}$'
+          example: 'Модель машинного обучения, основанная на алгоритме “Ансамбль”'
+        statusId:
+          description: 'ID статуса модели'
+          type: integer
+          minimum: 1
+          example: 1
+        productCode:
+          description: 'Код продукта'
+          type: string
+          minLength: 1
+          maxLength: 20
+          pattern: '^[a-zA-Z0-9]+$'
+          example: "prod001"
+        ownerId:
+          description: 'ID владельца модели'
+          type: integer
+          minimum: 1
+          example: 6
+        developersId:
+          description: 'Массив, содержащий ID разработчиков модели'
+          type: array
+          items:
+            type: integer
+            minimum: 1
+            example: 5
+
